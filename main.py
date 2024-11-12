@@ -1,5 +1,8 @@
+from flask import Flask, jsonify, request
 import mysql.connector
 from mysql.connector import Error
+
+app = Flask(__name__)
 
 db_config = {
     'host': 'localhost',
@@ -8,8 +11,16 @@ db_config = {
     'database': 'PianteGiardino'
 }
 
-def carica_dati():
+def initialize_database():
     try:
+
+        conn = mysql.connector.connect(host='localhost', user='root', password='')
+        cursor = conn.cursor()
+
+        cursor.execute("CREATE DATABASE IF NOT EXISTS PianteGiardino")
+        conn.commit()
+
+        conn.close()
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
 
@@ -24,7 +35,8 @@ def carica_dati():
         )
         """
         cursor.execute(create_table_query)
-    
+        conn.commit()
+
         insert_data_query = """
         INSERT INTO Piante (scientific_name, common_name, type, flower_color, height)
         VALUES
@@ -35,13 +47,15 @@ def carica_dati():
         conn.commit()
 
         print("Tabella e dati caricati con successo!")
-    
+
     except Error as e:
-        print("Errore nella connessione al database:", e)
-    
+        print(f"Errore nella connessione al database: {e}")
+
     finally:
         if conn.is_connected():
             cursor.close()
             conn.close()
 
-carica_dati()
+
+initialize_database()
+
